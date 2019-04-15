@@ -1,4 +1,16 @@
 /* ℛℒ ⅯⅯⅪⅩ */
+
+/* 
+If/Else logic
+Q = (A || S) ^ (B || S')
+if (S) {
+    Q = A;
+} else {
+    Q = B;
+}
+*/
+
+
 #include <stdio.h>
 #include <time.h>
 
@@ -12,24 +24,30 @@ void FBRC(int Clk, struct CQNQ *A, struct CQNQ *B, struct CQNQ *C, struct CQNQ *
 void JKF(int Clk, int J, int K, struct CQNQ *JKF);
 
 void JKF(int Clk, int J, int K, struct CQNQ *JKF) {
+    /*
     if ((Clk != JKF->Clk) && !Clk) {
         // Reset Q = 0
-        //if (J == 0 && K == 1) {
-        //    JKF->Q = 0;
-        //}
+        if (J == 0 && K == 1) {
+            JKF->Q = 0;
+        }
         // Set Q = 1
-        //if (J == 1 && K == 0) {
-        //    JKF->Q = 1;
-        //}
+        if (J == 1 && K == 0) {
+            JKF->Q = 1;
+        }
         // Toggle
-        //if (J == 1 && K == 1) {
-        //    JKF->Q = !JKF->Q;
-        //}
-        JKF->Q = (J && !K) || // Reset Q = 0
-            ((J && K) && JKF->NQ) || // Toggle
-            (!JKF->Q && !JKF->NQ); // Set Q = 1
-        JKF->NQ = !JKF->Q;
+        if (J == 1 && K == 1) {
+            JKF->Q = !JKF->Q;
+        }
     }
+    */
+    
+    JKF->Q = ((J && !K) || // Reset Q = 0
+        ((J && K) && JKF->NQ) || // Toggle
+        (!JKF->Q && !JKF->NQ) ||  // Set Q = 1
+        (!(Clk ^ !JKF->Clk) && !Clk)) ^ // if ((Clk != JKF->Clk) && !Clk)
+        (JKF->Q || !(!(Clk ^ !JKF->Clk) && !Clk)); // else
+
+    JKF->NQ = !JKF->Q;
 
     JKF->Clk = Clk;
 }
@@ -82,7 +100,7 @@ int main() {
 
     count = A.Q | ((B.Q << 1) | (C.Q << 2) | (D.Q << 3));
     if (!Clk) {
-      printf("%d\t%d\t%d%d%d%d\n", Clk, count, D.Q, C.Q, B.Q, A.Q);
+      printf("%d\t%d%d%d%d\n", count, D.Q, C.Q, B.Q, A.Q);
     }
     
     FBRC(Clk, &A, &B, &C, &D);
