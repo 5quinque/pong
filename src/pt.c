@@ -102,10 +102,10 @@ void HSync(int Clk) {
   FBRC(D.Q, &A2, &B2, &C2, &D2);
 
   // F6
-  JKF(D2.Q, 1, 1, &F6);
+  JKF(C2.Q, 1, 1, &F6);
 
   // 8 input NAND 7430
-  F7 = B.Q && C.Q && C2.Q && D2.Q && F6.Q;
+  F7 = !(B.Q && C.Q && C2.Q && D2.Q && F6.Q);
 
   printf("F7: %d\n", F7);
 }
