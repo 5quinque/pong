@@ -4,8 +4,8 @@ LIBS=
 BIN=/usr/bin/
 OBJS=
 
-all: ./pt.c ${OBJS}
-	${CC} ./pt.c ${OBJS} ${FLAGS} ${LIBS} -o ./p
+all: ./src/pt.c ${OBJS}
+	${CC} ./src/pt.c ${OBJS} ${FLAGS} ${LIBS} -o ./bin/p
 
 clean:
-	rm ./p
+	rm ./bin/p

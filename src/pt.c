@@ -20,6 +20,22 @@ struct CQNQ {
     unsigned int NQ : 1;
 };
 
+struct HSYNC {
+  struct CQNQ A;
+  struct CQNQ B;
+  struct CQNQ C;
+  struct CQNQ D;
+
+  struct CQNQ A2;
+  struct CQNQ B2;
+  struct CQNQ C2;
+  struct CQNQ D2;
+
+  struct CQNQ F6;
+  
+  unsigned int F7 : 1;
+};
+
 void FBRC(int Clk, struct CQNQ *A, struct CQNQ *B, struct CQNQ *C, struct CQNQ *D);
 void JKF(int Clk, int J, int K, struct CQNQ *JKF);
 
@@ -74,6 +90,8 @@ A->Q ━│B        A│━ Clk
  Convert FBRC to decimal
  count = A.Q | ((B.Q << 1) | (C.Q << 2) | (D.Q << 3));
  printf("%d\t%d%d%d%d\n", count, D.Q, C.Q, B.Q, A.Q);
+ count = H->A.Q | ((H->B.Q << 1) | (H->C.Q << 2) | (H->D.Q << 3));
+ printf("%d\t%d%d%d%d\n", count, H->D.Q, H->C.Q, H->B.Q, H->A.Q);
 
 */
 void FBRC(int Clk, struct CQNQ *A, struct CQNQ *B, struct CQNQ *C, struct CQNQ *D) {
@@ -83,43 +101,47 @@ void FBRC(int Clk, struct CQNQ *A, struct CQNQ *B, struct CQNQ *C, struct CQNQ *
   JKF(C->Q, 1, 1, D);
 }
 
-void HSync(int Clk) {
-  struct CQNQ A = { .Clk = 0, .Q = 0, .NQ = 0 };
-  struct CQNQ B = { .Clk = 0, .Q = 0, .NQ = 0 };
-  struct CQNQ C = { .Clk = 0, .Q = 0, .NQ = 0 };
-  struct CQNQ D = { .Clk = 0, .Q = 0, .NQ = 0 };
+void HSync(int Clk, struct HSYNC *H) {
+  int count;
 
-  struct CQNQ A2 = { .Clk = 0, .Q = 0, .NQ = 0 };
-  struct CQNQ B2 = { .Clk = 0, .Q = 0, .NQ = 0 };
-  struct CQNQ C2 = { .Clk = 0, .Q = 0, .NQ = 0 };
-  struct CQNQ D2 = { .Clk = 0, .Q = 0, .NQ = 0 };
-
-  struct CQNQ F6 = { .Clk = 0, .Q = 0, .NQ = 0 };
-  
-  int F7 = 0;
-
-  FBRC(Clk, &A, &B, &C, &D);
-  FBRC(D.Q, &A2, &B2, &C2, &D2);
+  FBRC(Clk, &H->A, &H->B, &H->C, &H->D);
+  FBRC(H->D.Q, &H->A2, &H->B2, &H->C2, &H->D2);
 
   // F6
-  JKF(C2.Q, 1, 1, &F6);
+  JKF(H->D2.Q, 1, 1, &H->F6);
+  //printf("D2.Q %d F6.Q: %d\n", H->D2.Q, H->F6.Q);
 
   // 8 input NAND 7430
-  F7 = !(B.Q && C.Q && C2.Q && D2.Q && F6.Q);
+  H->F7 = !(H->B.Q && H->C.Q && H->C2.Q && H->D2.Q && H->F6.Q);
 
-  printf("F7: %d\n", F7);
+  //printf("F7: %d\n", H->F7);
 }
 
 int main() {
   // 20000000L = 50hz
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = 20000000L };
-  int cycles = 456;
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = 2000000L };
+  int cycles = 900;
   int Clk = 0;
+
+  struct HSYNC H = {0};
+
+  /* FBRC Example */
+  struct CQNQ A;
+  struct CQNQ B;
+  struct CQNQ C;
+  struct CQNQ D;
+  int count;
+  /* FBRC Example */
 
   for (int i = 0; i < cycles; i++) {
     Clk ^= 1;
 
-    HSync(Clk);
+    // FBRC Example
+    FBRC(Clk, &A, &B, &C, &D);
+    count = A.Q | ((B.Q << 1) | (C.Q << 2) | (D.Q << 3));
+    printf("%d\t%d%d%d%d\n", count, D.Q, C.Q, B.Q, A.Q);
+
+    // HSync(Clk, &H);
      
     nanosleep(&ts, NULL);
   }
